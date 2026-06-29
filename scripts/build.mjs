@@ -5,6 +5,7 @@ import { fileURLToPath } from 'node:url';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const tscEntry = join(root, 'node_modules', 'typescript', 'bin', 'tsc');
+const tsconfigPath = join(root, 'tsconfig.json');
 
 console.log('Building LMS API (TypeScript → dist/)...\n');
 
@@ -13,7 +14,13 @@ if (!existsSync(tscEntry)) {
   process.exit(1);
 }
 
-const result = spawnSync(process.execPath, [tscEntry], {
+if (!existsSync(tsconfigPath)) {
+  console.error('✖ tsconfig.json not found at project root.');
+  console.error(`  Expected: ${tsconfigPath}\n`);
+  process.exit(1);
+}
+
+const result = spawnSync(process.execPath, [tscEntry, '-p', tsconfigPath], {
   cwd: root,
   stdio: 'inherit',
   env: process.env,
