@@ -24,7 +24,7 @@ RUN apk add --no-cache dumb-init \
     && adduser --system --uid 1001 --ingroup nodejs lms
 
 ENV NODE_ENV=production
-ENV PORT=5000
+ENV PORT=7000
 
 COPY --from=build /app/package.json /app/package-lock.json ./
 COPY --from=build /app/node_modules ./node_modules
@@ -34,7 +34,7 @@ RUN mkdir -p uploads/courses logs \
     && chown -R lms:nodejs /app
 
 USER lms
-EXPOSE 5000
+EXPOSE 7000
 
 ENTRYPOINT ["dumb-init", "--"]
 CMD ["node", "dist/app.js"]
