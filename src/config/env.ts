@@ -1,8 +1,10 @@
-import 'dotenv/config';
 import path from 'node:path';
 import dotenv from 'dotenv';
 
-dotenv.config({ path: path.resolve(process.cwd(), '.env') });
+/** Production env file — copy from `.env.prod.example`. */
+const ENV_FILE = path.resolve(process.cwd(), '.env.prod');
+
+dotenv.config({ path: ENV_FILE });
 
 const NODE_ENV = (process.env.NODE_ENV ?? 'development') as
   | 'development'
@@ -40,7 +42,9 @@ if (missing.length > 0) {
     `[env] Missing required environment variables: ${missing.join(', ')}`,
   );
   // eslint-disable-next-line no-console
-  console.error('[env] Copy .env.example to .env and fill in the values.');
+  console.error(
+    '[env] Copy .env.prod.example to .env.prod and fill in the values.',
+  );
   throw new Error(
     `Missing required environment variables: ${missing.join(', ')}`,
   );

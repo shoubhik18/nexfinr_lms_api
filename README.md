@@ -17,8 +17,8 @@ Node.js + Express + PostgreSQL backend for the LMS.
 # 1. install
 npm install
 
-# 2. env
-cp .env.example .env   # then fill in DATABASE_URL + JWT secrets
+# 2. env (app loads `.env.prod` only)
+cp .env.prod.example .env.prod   # then fill in DATABASE_URL + JWT secrets
 
 # 3. run
 npm run dev            # nodemon, auto-reload

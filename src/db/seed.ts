@@ -31,7 +31,7 @@ export async function seedAdmin(): Promise<void> {
       );
     } else {
       logger.warn(
-        'SEED_ADMIN_PASSWORD is not set — skipping admin seed. Set it in .env for local dev.',
+        'SEED_ADMIN_PASSWORD is not set — skipping admin seed. Set it in .env.prod.',
       );
     }
     return;

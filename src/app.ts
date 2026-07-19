@@ -1,5 +1,4 @@
-// 1. Validate env BEFORE anything else loads.
-import 'dotenv/config';
+// 1. Validate env BEFORE anything else loads (loads `.env.prod`).
 import { env } from './config/env';
 
 import helmet from 'helmet';
