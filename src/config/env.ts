@@ -66,7 +66,7 @@ export const env = Object.freeze({
   NODE_ENV,
   IS_PROD,
   IS_DEV: NODE_ENV === 'development',
-  PORT: parseIntStrict(process.env.PORT, 5000),
+  PORT: parseIntStrict(process.env.PORT, 8080),
 
   DATABASE_URL: process.env.DATABASE_URL!,
 
@@ -80,7 +80,7 @@ export const env = Object.freeze({
   /** Public base URL for uploaded assets (no trailing slash). */
   API_PUBLIC_URL:
     process.env.API_PUBLIC_URL ??
-    `http://localhost:${parseIntStrict(process.env.PORT, 5000)}`,
+    `http://localhost:${parseIntStrict(process.env.PORT, 8080)}`,
   UPLOAD_MAX_BYTES: parseIntStrict(process.env.UPLOAD_MAX_BYTES, 5 * 1024 * 1024),
 
   SMTP_HOST: process.env.SMTP_HOST ?? '',

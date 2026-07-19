@@ -73,7 +73,7 @@ On error:
 
 | Key                       | Example                                  |
 |---------------------------|------------------------------------------|
-| `PORT`                    | `4000`                                   |
+| `PORT`                    | `8080`                                   |
 | `NODE_ENV`                | `development` \| `production`            |
 | `DATABASE_URL`            | `postgres://user:pass@localhost:5432/lms`|
 | `JWT_ACCESS_SECRET`       | long random string                       |
