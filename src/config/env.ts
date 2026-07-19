@@ -56,6 +56,14 @@ function parseIntStrict(value: string | undefined, fallback: number): number {
   return Number.isFinite(n) ? n : fallback;
 }
 
+function parseBool(value: string | undefined, fallback: boolean): boolean {
+  if (value === undefined || value.trim() === '') return fallback;
+  const v = value.trim().toLowerCase();
+  if (['1', 'true', 'yes', 'on'].includes(v)) return true;
+  if (['0', 'false', 'no', 'off'].includes(v)) return false;
+  return fallback;
+}
+
 /** Comma-separated FRONTEND_URL values → CORS allowlist. */
 function parseFrontendOrigins(raw: string | undefined): readonly string[] {
   const value = raw ?? 'http://localhost:3000';
@@ -73,6 +81,8 @@ export const env = Object.freeze({
   PORT: parseIntStrict(process.env.PORT, 8080),
 
   DATABASE_URL: process.env.DATABASE_URL!,
+  /** Enable TLS to Postgres (RDS/cloud). Keep false for local Docker Postgres. */
+  DATABASE_SSL: parseBool(process.env.DATABASE_SSL, false),
 
   JWT_ACCESS_SECRET: process.env.JWT_ACCESS_SECRET!,
   JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET!,

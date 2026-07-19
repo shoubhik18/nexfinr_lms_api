@@ -144,7 +144,12 @@ async function bootstrap(): Promise<void> {
 }
 
 bootstrap().catch((err) => {
-  logger.error('Bootstrap failed', { error: err });
+  const e = err as Error & { code?: string };
+  logger.error('Bootstrap failed', {
+    message: e?.message ?? String(err),
+    code: e?.code,
+    stack: e?.stack,
+  });
   process.exit(1);
 });
 
