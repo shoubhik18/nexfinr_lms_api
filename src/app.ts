@@ -8,9 +8,8 @@ import cors from 'cors';
 import morgan from 'morgan';
 
 import { logger } from './shared/logger';
-import { syncSchema } from './db/syncSchema';
-import { seedAdmin } from './db/seed';
-import { pool } from './db/pool';
+import { bootstrapApplication } from './db/bootstrap';
+import { logBootstrapFailure } from './shared/utils/pgError.utils';
 import { errorMiddleware } from './middleware/error.middleware';
 import { success } from './shared/utils/response.utils';
 
@@ -102,54 +101,9 @@ app.use('/api/v1', assessmentsRoutes); // /api/v1/assessments/...
 // 6. Error middleware LAST.
 app.use(errorMiddleware);
 
-// 7. Bootstrap — strict order: env → schema sync → admin seed → listen
-async function bootstrap(): Promise<void> {
-  await syncSchema();
-  await seedAdmin();
-
-  const server = app.listen(env.PORT, () => {
-    logger.info(
-      `lms-backend listening on http://localhost:${env.PORT} (${env.NODE_ENV})`,
-    );
-    logger.info(`CORS origins: ${env.FRONTEND_ORIGINS.join(', ')}`);
-  });
-
-  // Graceful shutdown
-  const shutdown = (signal: string) => {
-    logger.info(`${signal} received — shutting down...`);
-    server.close(async () => {
-      try {
-        await pool.end();
-        logger.info('pg pool closed. Bye.');
-        process.exit(0);
-      } catch (err) {
-        logger.error('Error during shutdown', { error: err });
-        process.exit(1);
-      }
-    });
-    setTimeout(() => {
-      logger.error('Forced shutdown (timeout).');
-      process.exit(1);
-    }, 10_000).unref();
-  };
-
-  process.on('SIGINT', () => shutdown('SIGINT'));
-  process.on('SIGTERM', () => shutdown('SIGTERM'));
-  process.on('unhandledRejection', (reason) => {
-    logger.error('unhandledRejection', { reason });
-  });
-  process.on('uncaughtException', (err) => {
-    logger.error('uncaughtException', { error: err });
-  });
-}
-
-bootstrap().catch((err) => {
-  const e = err as Error & { code?: string };
-  logger.error('Bootstrap failed', {
-    message: e?.message ?? String(err),
-    code: e?.code,
-    stack: e?.stack,
-  });
+// 7. Bootstrap — strict order: connect → schema sync → admin seed → listen
+bootstrapApplication(app).catch((err) => {
+  logBootstrapFailure(err, env.database);
   process.exit(1);
 });
 

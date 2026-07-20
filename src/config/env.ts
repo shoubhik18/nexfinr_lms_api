@@ -1,15 +1,32 @@
 import path from 'node:path';
 import dotenv from 'dotenv';
+import {
+  isAwsRdsHost,
+  loadDatabaseConfig,
+  type DatabaseConfig,
+} from './database';
 
 /** Production env file — copy from `.env.prod.example`. */
 const ENV_FILE = path.resolve(process.cwd(), '.env.prod');
 
 dotenv.config({ path: ENV_FILE });
 
-const NODE_ENV = (process.env.NODE_ENV ?? 'development') as
-  | 'development'
-  | 'production'
-  | 'test';
+function isAwsRdsUrl(url: string): boolean {
+  try {
+    return isAwsRdsHost(new URL(url).hostname);
+  } catch {
+    return false;
+  }
+}
+
+const rawDatabaseUrl = process.env.DATABASE_URL?.trim() ?? '';
+const inferredProduction =
+  !process.env.NODE_ENV?.trim() && isAwsRdsUrl(rawDatabaseUrl);
+
+const NODE_ENV = (
+  process.env.NODE_ENV?.trim() ||
+  (inferredProduction ? 'production' : 'development')
+) as 'development' | 'production' | 'test';
 
 const IS_PROD = NODE_ENV === 'production';
 
@@ -50,18 +67,24 @@ if (missing.length > 0) {
   );
 }
 
+if (!process.env.NODE_ENV?.trim()) {
+  // eslint-disable-next-line no-console
+  console.info(
+    `[env] NODE_ENV not set — defaulting to "${NODE_ENV}"${
+      inferredProduction ? ' (AWS RDS host detected)' : ''
+    }`,
+  );
+}
+
+const database: DatabaseConfig = loadDatabaseConfig({
+  url: rawDatabaseUrl,
+  sslOverride: process.env.DATABASE_SSL,
+});
+
 function parseIntStrict(value: string | undefined, fallback: number): number {
   if (!value) return fallback;
   const n = Number.parseInt(value, 10);
   return Number.isFinite(n) ? n : fallback;
-}
-
-function parseBool(value: string | undefined, fallback: boolean): boolean {
-  if (value === undefined || value.trim() === '') return fallback;
-  const v = value.trim().toLowerCase();
-  if (['1', 'true', 'yes', 'on'].includes(v)) return true;
-  if (['0', 'false', 'no', 'off'].includes(v)) return false;
-  return fallback;
 }
 
 /** Comma-separated FRONTEND_URL values → CORS allowlist. */
@@ -80,9 +103,8 @@ export const env = Object.freeze({
   IS_DEV: NODE_ENV === 'development',
   PORT: parseIntStrict(process.env.PORT, 8080),
 
-  DATABASE_URL: process.env.DATABASE_URL!,
-  /** Enable TLS to Postgres (RDS/cloud). Keep false for local Docker Postgres. */
-  DATABASE_SSL: parseBool(process.env.DATABASE_SSL, false),
+  DATABASE_URL: database.connectionString,
+  database,
 
   JWT_ACCESS_SECRET: process.env.JWT_ACCESS_SECRET!,
   JWT_REFRESH_SECRET: process.env.JWT_REFRESH_SECRET!,
